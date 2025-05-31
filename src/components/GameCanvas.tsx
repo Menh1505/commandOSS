@@ -2,6 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import HP from './HP';
+import SkillPanel from './SkillPanel';
+import { Skill } from '@/types/skill.type';
 
 // Tạo một component wrapper sẽ chỉ render ở client
 const GameCanvasClient = dynamic(() => import('@/components/GameCanvasClient'), {
@@ -9,7 +11,10 @@ const GameCanvasClient = dynamic(() => import('@/components/GameCanvasClient'), 
 });
 
 export default function GameCanvas() {
-  // Sử dụng suppressHydrationWarning để loại bỏ cảnh báo hydration
+  const useSkill = (skills: Skill) => {
+    console.log("Using skill:", skills);
+  }
+
   return (
     <>
       <div
@@ -18,6 +23,18 @@ export default function GameCanvas() {
         suppressHydrationWarning
       />
       <GameCanvasClient />
+      <div
+        className="fixed z-10"
+        style={{
+          bottom: '10%',
+          left: '50%',
+          transform: 'translate(-50%, 50%)'
+        }}
+      >
+        <div className="w-full max-w-md px-4">
+          <SkillPanel onClick={useSkill} disabled={false} />
+        </div>
+      </div>
       <div
         className="fixed z-10"
         style={{ bottom: '5%', left: '5%' }}
