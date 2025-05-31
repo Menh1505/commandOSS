@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 import * as Phaser from "phaser";
+import HP from './HP';
+import SkillPanel from './SkillPanel';
+import { Skill } from '@/types/skill.type';
 
 export default function GameCanvasClient() {
     useEffect(() => {
@@ -82,5 +85,40 @@ export default function GameCanvasClient() {
         };
     }, []);
 
-    return null;
+    const useSkill = (skill: Skill) => {
+        console.log("Using skill:", skill);
+        // Thực hiện logic sử dụng skill ở đây
+    };
+    return (
+        <>
+            <div
+                className="absolute z-10"
+                style={{
+                    bottom: '10%',
+                    left: '50%',
+                    transform: 'translate(-50%, 50%)'
+                }}
+            >
+                <div className="w-full max-w-md px-4">
+                    <SkillPanel onClick={useSkill} disabled={false} />
+                </div>
+            </div>
+
+            <div
+                className="absolute z-10 bottom-5 left-5"
+            >
+                <div className="w-full max-w-md px-4 scale-150 transform origin-bottom-left">
+                    <HP name={"Player"} hp={100} maxHp={100} avatarUrl={"/avatars/notion.png"} />
+                </div>
+            </div>
+
+            <div
+                className="absolute z-10 bottom-5 right-5"
+            >
+                <div className="w-full max-w-md px-4 scale-150 transform origin-bottom-right">
+                    <HP name={"Enemy"} hp={80} maxHp={100} avatarUrl={"/avatars/orc.jpg"} />
+                </div>
+            </div>
+        </>
+    );
 }
