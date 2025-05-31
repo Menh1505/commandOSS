@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 
 
 // Tạo một component wrapper sẽ chỉ render ở client
-const GameCanvasClient = dynamic(() => import('@/components/GameCanvasClient'), {
+const GameCanvasClient = dynamic(() => import('@/components/game/GameCanvasClient'), {
   ssr: false
 });
 

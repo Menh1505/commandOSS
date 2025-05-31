@@ -1,10 +1,50 @@
-import GameCanvas from "@/components/GameCanvas";
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
-      <div className="w-full max-w-6xl">
-        <GameCanvas />
+    <main className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
+      <div className="text-center max-w-3xl mx-auto">
+        <h1 className="text-5xl font-bold mb-4 font-orbitron bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-red-600">
+          ⚔️ CommandOSS
+        </h1>
+
+        <p className="text-xl mb-8 text-gray-300">
+          Enter the arena, embrace the battle, and command your destiny.
+        </p>
+
+        <div className="relative w-full h-64 mb-8">
+          <Image
+            src="/maps/twillight-forest.png"
+            alt="Game Preview"
+            fill
+            className="object-cover rounded-lg shadow-2xl opacity-80"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
+        </div>
+
+        <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
+          <Link
+            href="/battle"
+            className="bg-red-600 hover:bg-red-700 text-white py-4 px-8 rounded-lg shadow-lg transition-all transform hover:scale-105 font-orbitron text-xl flex items-center justify-center"
+          >
+            <span className="mr-2">⚔️</span> Start Battle
+          </Link>
+
+          <Link
+            href="/heroes"
+            className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-8 rounded-lg shadow-lg transition-all hover:scale-105 font-orbitron"
+          >
+            Heroes
+          </Link>
+
+          <Link
+            href="/settings"
+            className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-8 rounded-lg shadow-lg transition-all hover:scale-105 font-orbitron"
+          >
+            Settings
+          </Link>
+        </div>
       </div>
     </main>
   );
