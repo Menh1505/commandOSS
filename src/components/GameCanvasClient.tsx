@@ -42,9 +42,9 @@ export default function GameCanvasClient() {
                 bg.setDisplaySize(this.cameras.main.width, this.cameras.main.height);
 
 
-                const player = this.add.sprite(width / 4, 600, 'player', 0).setScale(2);
+                const player = this.add.sprite(width / 4, 500, 'player', 0).setScale(4);
 
-                const enemy = this.add.sprite(width / 4 * 3, 600, 'enemy', 0).setScale(2);
+                const enemy = this.add.sprite(width / 4 * 3, 500, 'enemy', 0).setScale(4);
                 enemy.flipX = true;
 
                 this.anims.create({
