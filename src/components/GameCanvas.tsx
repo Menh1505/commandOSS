@@ -1,43 +1,40 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import Phaser from "phaser";
+import dynamic from 'next/dynamic';
+import HP from './HP';
+
+// Tạo một component wrapper sẽ chỉ render ở client
+const GameCanvasClient = dynamic(() => import('@/components/GameCanvasClient'), {
+  ssr: false
+});
 
 export default function GameCanvas() {
-  const gameRef = useRef<Phaser.Game | null>(null);
+  // Sử dụng suppressHydrationWarning để loại bỏ cảnh báo hydration
+  return (
+    <>
+      <div
+        id="game-container"
+        className="w-full border border-gray-700"
+        suppressHydrationWarning
+      />
+      <GameCanvasClient />
+      <div
+        className="fixed z-10"
+        style={{ bottom: '5%', left: '5%' }}
+      >
+        <div className="w-full max-w-md px-4">
+          <HP name={"Player"} hp={100} maxHp={100} />
+        </div>
+      </div>
 
-  useEffect(() => {
-    if (gameRef.current) return;
-
-    class MainScene extends Phaser.Scene {
-      constructor() {
-        super("MainScene");
-      }
-
-      preload() {
-        // preload hình pixel 32x32 nếu bạn có
-        this.load.image("hero", "/sprites/hero_idle_1.png");
-      }
-
-      create() {
-        this.add.image(100, 100, "hero").setScale(2);
-      }
-    }
-
-    gameRef.current = new Phaser.Game({
-      type: Phaser.AUTO,
-      width: 400,
-      height: 300,
-      backgroundColor: "#111827", // Tailwind gray-900
-      parent: "game-container",
-      scene: [MainScene],
-    });
-
-    return () => {
-      gameRef.current?.destroy(true);
-      gameRef.current = null;
-    };
-  }, []);
-
-  return <div id="game-container" className="w-full max-w-md mx-auto mt-10 border border-gray-700" />;
+      <div
+        className="fixed z-10"
+        style={{ bottom: '5%', right: '5%' }}
+      >
+        <div className="w-full max-w-md px-4">
+          <HP name={"Enemy"} hp={80} maxHp={100} />
+        </div>
+      </div>
+    </>
+  );
 }
