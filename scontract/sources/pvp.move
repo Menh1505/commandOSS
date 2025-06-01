@@ -37,11 +37,11 @@ module scontract::pvp {
             turn: 0, //1: player1, 2: player2, 0: not started 
             result: 0,
         };
-        transfer::transfer(battle, sender);
+        transfer::share_object(battle);
     }
 
     public entry fun join_pvp(battle: &mut PvPBattleState) {
-        assert!(battle.player_number == 2, E_ROOM_FULL);
+        assert!(battle.player_number < 3, E_ROOM_FULL);
         battle.player_number = 2;
         battle.turn = 1;
     }
@@ -49,7 +49,7 @@ module scontract::pvp {
     #[allow(lint(public_random))]
     public entry fun attack_pvp(battle: &mut PvPBattleState, r: &Random, ctx: &mut TxContext) {
         let sender = tx_context::sender(ctx);
-        assert!(battle.turn == 0, E_NOT_READY);
+        assert!(battle.turn > 0, E_NOT_READY);
 
         if (battle.turn == 1) {
             assert!(sender == battle.room_master, E_INVALID_TURN);
