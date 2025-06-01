@@ -42,7 +42,7 @@ export class SuiService {
             const tx = new Transaction();
             tx.setSender(currentAccount.address);
             tx.moveCall({
-                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
+                package: "0x08ac2878831a715e5d3c832b44077225862d66c4504d1281df50273620fd023c",
                 module: "scontract",
                 function: "start_battle",
                 arguments: [],
@@ -128,7 +128,7 @@ export class SuiService {
         try {
             const tx = new Transaction();
             tx.moveCall({
-                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
+                package: "0x08ac2878831a715e5d3c832b44077225862d66c4504d1281df50273620fd023c",
                 module: "scontract",
                 function: "player_attack",
                 arguments: [
@@ -170,7 +170,7 @@ export class SuiService {
             const tx = new Transaction();
             tx.setSender(currentAccount.address);
             tx.moveCall({
-                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
+                package: "0x08ac2878831a715e5d3c832b44077225862d66c4504d1281df50273620fd023c",
                 module: "pvp",
                 function: "create_pvp",
                 arguments: [],
@@ -216,7 +216,7 @@ export class SuiService {
             const tx = new Transaction();
             tx.setSender(currentAccount.address);
             tx.moveCall({
-                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
+                package: "0x08ac2878831a715e5d3c832b44077225862d66c4504d1281df50273620fd023c",
                 module: "pvp",
                 function: "join_pvp",
                 arguments: [tx.object(formattedId)],
@@ -251,10 +251,11 @@ export class SuiService {
             return;
         }
         const formattedId = this.formatObjectId(battleId, false);
+        console.log("Attacking battle with ID:", formattedId);
         try {
             const tx = new Transaction();
             tx.moveCall({
-                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
+                package: "0x08ac2878831a715e5d3c832b44077225862d66c4504d1281df50273620fd023c",
                 module: "pvp",
                 function: "attach_pvp",
                 arguments: [

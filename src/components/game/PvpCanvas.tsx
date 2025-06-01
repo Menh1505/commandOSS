@@ -3,7 +3,7 @@
 import { useCurrentAccount, useSignTransaction } from '@mysten/dapp-kit';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 
 // Tạo một component wrapper sẽ chỉ render ở client
@@ -13,11 +13,10 @@ const PvpCanvasClient = dynamic(() => import('@/components/game/PvpCanvasClient'
 
 export default function PvpCanvas() {
   // Lấy battleId từ URL path
-  const params = useParams();
-  const battleId = params?.id as string;
+  const searchParams = useSearchParams();
+  const battleId = searchParams.get('id');
 
   // Lấy role từ query parameters
-  const searchParams = useSearchParams();
   const role = parseInt(searchParams.get('role') || '0', 10);
 
   const currentAccount = useCurrentAccount();
@@ -42,7 +41,7 @@ export default function PvpCanvas() {
         console.error("No battle ID found in URL");
         return;
       }
-
+      console.log("Calling contract with battle ID:", battleId);
       // Set battleId từ URL
       setBattleStateId(battleId);
       setIsLoading(false);

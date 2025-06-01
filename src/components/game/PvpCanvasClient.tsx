@@ -5,7 +5,7 @@ import SkillPanel from './SkillPanel';
 import { Skill } from '@/types/skill.type';
 import suiService from "@/services/sui.services";
 import { useSignTransaction } from "@mysten/dapp-kit";
-import { motion } from "framer-motion"; // Nếu dự án chưa có, cần cài đặt: npm install framer-motion
+import { motion } from "framer-motion";
 
 interface GameCanvasClientProps {
     battleStateId: string | null;
@@ -21,6 +21,7 @@ interface BattleState {
 
 export default function GameCanvasClient({ battleStateId, playerRole }: GameCanvasClientProps) {
     const [gameDimensions, setGameDimensions] = useState({ width: 0, height: 0 });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [game, setGame] = useState<Phaser.Game | null>(null);
     const { mutateAsync: signTransaction } = useSignTransaction();
     const [battleState, setBattleState] = useState<BattleState>();
@@ -58,6 +59,7 @@ export default function GameCanvasClient({ battleStateId, playerRole }: GameCanv
         setTimeout(() => {
             fetchBattleState();
         }, 2000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [battleStateId]);
 
     useEffect(() => {

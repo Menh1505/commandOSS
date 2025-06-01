@@ -2,27 +2,33 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ConnectButton } from '@mysten/dapp-kit';
+import { ConnectButton, useSignTransaction } from '@mysten/dapp-kit';
 import { useCurrentAccount } from '@mysten/dapp-kit';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import suiService from '@/services/sui.services';
 
 
 export default function Home() {
+  const router = useRouter();
   const currentAccount = useCurrentAccount();
   const isConnected = !!currentAccount;
   const [isJoiningRoom, setIsJoiningRoom] = useState(false);
   const [roomId, setRoomId] = useState('');
+  const { mutateAsync: signTransaction } = useSignTransaction();
 
   // Xử lý khi người dùng muốn tham gia phòng
-  const handleJoinRoom = () => {
-    console.log('Joining room with ID:', roomId);
+  const handleJoinRoom = async () => {
     if (!roomId.trim()) {
       alert('Please enter a valid Room ID');
       return;
     }
-    // Chuyển hướng đến trang phòng với ID đã nhập
-    router.push(`/pvp/${roomId}?role=2`);
+    if (!isConnected) {
+      alert('Please connect your wallet first');
+      return;
+    }
+    await suiService.joinPvpBattle(roomId, signTransaction, currentAccount);
+    router.push(`/pvp/?id=${roomId}&role=2`);
   };
 
   return (

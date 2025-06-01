@@ -13,7 +13,7 @@ type SkillWithCooldownState = Skill & {
     remainingCooldown?: number;
 };
 
-export default function SkillPanel({ skills, disabled, onClick }: SkillPanelProps) {
+export default function SkillPanel({ disabled, onClick }: SkillPanelProps) {
     // State để quản lý cooldown của các kỹ năng
     const [skillsState, setSkillsState] = useState<SkillWithCooldownState[]>([]);
 
