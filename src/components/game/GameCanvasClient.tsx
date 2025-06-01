@@ -5,7 +5,6 @@ import SkillPanel from './SkillPanel';
 import { Skill } from '@/types/skill.type';
 
 export default function GameCanvasClient() {
-    // State lưu trữ kích thước game
     const [gameDimensions, setGameDimensions] = useState({ width: 0, height: 0 });
     const [game, setGame] = useState<Phaser.Game | null>(null);
 
