@@ -171,10 +171,11 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
             // Gọi hàm attack
             const resAttack = await suiService.attack(
                 battleStateId,
+                battleState?.turn || 0,
                 signTransaction,
             );
             console.log("Attack result:", resAttack);
-            
+
             // Chờ một chút để giao dịch được xác nhận trên blockchain
             setTimeout(async () => {
                 // Sau khi tấn công, cập nhật lại trạng thái battle

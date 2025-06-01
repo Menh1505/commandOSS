@@ -42,7 +42,7 @@ export class SuiService {
             const tx = new Transaction();
             tx.setSender(currentAccount.address);
             tx.moveCall({
-                package: "0x41a69e2ef9f759dcd2d68135fd32169eddb4bd34a54b7ef194e7ba29a2505cf4",
+                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
                 module: "scontract",
                 function: "start_battle",
                 arguments: [],
@@ -118,7 +118,6 @@ export class SuiService {
 
     async attack(
         battleId: string,
-        turn: number,
         signTransaction: ReturnType<typeof useSignTransaction>['mutateAsync']
     ) {
         if (!battleId) {
@@ -129,9 +128,136 @@ export class SuiService {
         try {
             const tx = new Transaction();
             tx.moveCall({
-                package: "0x41a69e2ef9f759dcd2d68135fd32169eddb4bd34a54b7ef194e7ba29a2505cf4",
+                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
                 module: "scontract",
-                function: turn === 0 ? "player_attack" : "bot_attack",
+                function: "player_attack",
+                arguments: [
+                    tx.object(formattedId),
+                    tx.object("0x8")
+                ],
+                typeArguments: []
+            });
+
+            const { bytes, signature, reportTransactionEffects } = await signTransaction({
+                transaction: tx,
+                chain: `sui:${this.network}`,
+            });
+
+            const executeResult = await this.client.executeTransactionBlock({
+                transactionBlock: bytes,
+                signature,
+                options: {
+                    showObjectChanges: true,
+                },
+            }) as unknown as CreateBattleResponse;
+
+            reportTransactionEffects(executeResult.digest);
+            return executeResult.digest;
+        } catch (error) {
+            console.error("Error when calling contract:", error);
+        }
+    }
+    async createPvpBattle(
+        signTransaction: ReturnType<typeof useSignTransaction>['mutateAsync'],
+        currentAccount: WalletAccount,
+    ): Promise<string | undefined> {
+        if (!currentAccount?.address) {
+            alert("Connect wallet before calling contract");
+            return;
+        }
+
+        try {
+            const tx = new Transaction();
+            tx.setSender(currentAccount.address);
+            tx.moveCall({
+                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
+                module: "pvp",
+                function: "create_pvp",
+                arguments: [],
+                typeArguments: []
+            });
+
+            const { bytes, signature, reportTransactionEffects } = await signTransaction({
+                transaction: tx,
+                chain: `sui:${this.network}`,
+            });
+
+            const executeResult = await this.client.executeTransactionBlock({
+                transactionBlock: bytes,
+                signature,
+                options: {
+                    showObjectChanges: true,
+                },
+            }) as unknown as CreateBattleResponse;
+
+            reportTransactionEffects(executeResult.digest);
+            return this.getCreateBattleResponseId(executeResult);
+        } catch (error) {
+            console.error("Error when calling contract:", error);
+        }
+    }
+
+    async joinPvpBattle(
+        battleId: string,
+        signTransaction: ReturnType<typeof useSignTransaction>['mutateAsync'],
+        currentAccount: WalletAccount,
+    ): Promise<string | undefined> {
+        if (!currentAccount?.address) {
+            alert("Connect wallet before calling contract");
+            return;
+        }
+
+        if (!battleId) {
+            alert("Battle ID is required");
+            return;
+        }
+
+        const formattedId = this.formatObjectId(battleId, false);
+        try {
+            const tx = new Transaction();
+            tx.setSender(currentAccount.address);
+            tx.moveCall({
+                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
+                module: "pvp",
+                function: "join_pvp",
+                arguments: [tx.object(formattedId)],
+                typeArguments: []
+            });
+
+            const { bytes, signature, reportTransactionEffects } = await signTransaction({
+                transaction: tx,
+                chain: `sui:${this.network}`,
+            });
+
+            const executeResult = await this.client.executeTransactionBlock({
+                transactionBlock: bytes,
+                signature,
+                options: {
+                    showObjectChanges: true,
+                },
+            }) as unknown as CreateBattleResponse;
+
+            reportTransactionEffects(executeResult.digest);
+            return this.getCreateBattleResponseId(executeResult);
+        } catch (error) {
+            console.error("Error when calling contract:", error);
+        }
+    }
+    async PvpAttack(
+        battleId: string,
+        signTransaction: ReturnType<typeof useSignTransaction>['mutateAsync']
+    ) {
+        if (!battleId) {
+            alert("Battle ID is required");
+            return;
+        }
+        const formattedId = this.formatObjectId(battleId, false);
+        try {
+            const tx = new Transaction();
+            tx.moveCall({
+                package: "0x8e20bbd2df64f0a09826d77c1697166a97c786fba31ef13bf15e06ab5acf36e0",
+                module: "pvp",
+                function: "attach_pvp",
                 arguments: [
                     tx.object(formattedId),
                     tx.object("0x8")
