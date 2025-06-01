@@ -5,24 +5,27 @@ import SkillPanel from './SkillPanel';
 import { Skill } from '@/types/skill.type';
 import suiService from "@/services/sui.services";
 import { useSignTransaction } from "@mysten/dapp-kit";
+import { motion } from "framer-motion"; // Nếu dự án chưa có, cần cài đặt: npm install framer-motion
 
 interface GameCanvasClientProps {
     battleStateId: string | null;
+    playerRole: number;
 }
 
 interface BattleState {
-    player_hp: number;
-    bot_hp: number;
+    hp1: number;
+    hp2: number;
     result: string;
     turn: number;
 }
 
-export default function GameCanvasClient({ battleStateId }: GameCanvasClientProps) {
+export default function GameCanvasClient({ battleStateId, playerRole }: GameCanvasClientProps) {
     const [gameDimensions, setGameDimensions] = useState({ width: 0, height: 0 });
     const [game, setGame] = useState<Phaser.Game | null>(null);
     const { mutateAsync: signTransaction } = useSignTransaction();
     const [battleState, setBattleState] = useState<BattleState>();
     const [isActionInProgress, setIsActionInProgress] = useState(false);
+    const [showResult, setShowResult] = useState(false);
 
     // Hàm lấy trạng thái battle từ blockchain
     async function fetchBattleState() {
@@ -32,6 +35,12 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
             const state = await suiService.getBattleState(battleStateId) as unknown as BattleState;
             console.log("Updated battle state:", state);
             setBattleState(state);
+
+            // Nếu trận đấu đã kết thúc, hiển thị kết quả
+            if (state && state.result) {
+                setShowResult(true);
+            }
+
             return state;
         } catch (error) {
             console.error("Error fetching battle state:", error);
@@ -171,7 +180,6 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
             // Gọi hàm attack
             const resAttack = await suiService.attack(
                 battleStateId,
-                battleState?.turn || 0,
                 signTransaction,
             );
             console.log("Attack result:", resAttack);
@@ -182,12 +190,8 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
                 const updatedState = await fetchBattleState();
 
                 // Kiểm tra kết quả trận đấu
-                if (updatedState && updatedState.result !== "") {
-                    if (updatedState.result === "player_win") {
-                        alert("You won the battle!");
-                    } else if (updatedState.result === "bot_win") {
-                        alert("You lost the battle!");
-                    }
+                if (updatedState && updatedState.result) {
+                    setShowResult(true);
                 }
 
                 setIsActionInProgress(false);
@@ -199,6 +203,32 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
         }
     };
 
+    // Xác định người thắng dựa trên kết quả và vai trò
+    const determineWinner = () => {
+        if (!battleState || !battleState.result) return null;
+
+        // Giả sử kết quả là "player1_win" hoặc "player2_win"
+        if (battleState.result === "player1_win") {
+            return playerRole === 1 ? "You Win!" : "You Lose!";
+        } else if (battleState.result === "player2_win") {
+            return playerRole === 2 ? "You Win!" : "You Lose!";
+        } else if (battleState.result === "draw") {
+            return "Draw!";
+        }
+
+        return null;
+    };
+
+    // Xác định màu sắc dựa vào kết quả
+    const getResultColor = () => {
+        if (!battleState || !battleState.result) return "text-white";
+
+        const result = determineWinner();
+        if (result === "You Win!") return "text-green-500";
+        if (result === "You Lose!") return "text-red-500";
+        return "text-yellow-400"; // Draw
+    };
+
     const uiScale = Math.min(
         Math.max(gameDimensions.width / 1000, 0.7),
         1.4
@@ -206,6 +236,68 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
 
     return (
         <>
+            {/* Battle Result Overlay */}
+            {showResult && battleState?.result && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm"
+                >
+                    <motion.div
+                        initial={{ y: -20 }}
+                        animate={{ y: 0 }}
+                        transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 20
+                        }}
+                        className="bg-gray-800 bg-opacity-90 rounded-lg p-8 shadow-2xl border border-gray-700 max-w-md w-full mx-4"
+                    >
+                        <h2 className={`text-4xl font-orbitron font-bold mb-6 text-center ${getResultColor()}`}>
+                            {determineWinner()}
+                        </h2>
+
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="text-center">
+                                <div className="text-gray-400 text-sm">Player 1</div>
+                                <div className="text-2xl font-bold text-yellow-400">{battleState.hp1}</div>
+                                <div className="text-xs text-gray-400">HP</div>
+                            </div>
+
+                            <div className="text-2xl font-bold">VS</div>
+
+                            <div className="text-center">
+                                <div className="text-gray-400 text-sm">Player 2</div>
+                                <div className="text-2xl font-bold text-purple-400">{battleState.hp2}</div>
+                                <div className="text-xs text-gray-400">HP</div>
+                            </div>
+                        </div>
+
+                        <div className="text-center text-sm text-gray-400 mb-6">
+                            Battle completed after {battleState.turn} turns
+                        </div>
+
+                        <div className="flex flex-col space-y-3">
+                            <button
+                                onClick={() => window.location.href = '/pvp/create'}
+                                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors font-orbitron"
+                            >
+                                New Battle
+                            </button>
+
+                            <button
+                                onClick={() => window.location.href = '/'}
+                                className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition-colors font-orbitron"
+                            >
+                                Return Home
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+
+            {/* Game Controls - Giữ nguyên code hiện tại */}
             <div
                 className="absolute z-10"
                 style={{
@@ -217,7 +309,7 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
                 <div className="w-full max-w-md px-4">
                     <SkillPanel
                         onClick={useSkill}
-                        disabled={isActionInProgress} // Disable skills khi đang thực hiện hành động
+                        disabled={isActionInProgress || showResult} // Cũng disable khi đã có kết quả
                     />
                     {isActionInProgress && (
                         <div className="mt-2 text-center text-yellow-400 font-orbitron text-sm">
@@ -237,8 +329,8 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
             >
                 <div className="w-full max-w-md px-2">
                     <HP
-                        name={"Player"}
-                        hp={battleState?.player_hp ?? 0}
+                        name={"You"}
+                        hp={playerRole === 1 ? (battleState?.hp1 ?? 0) : (battleState?.hp2 ?? 0)}
                         maxHp={100}
                         avatarUrl={"/avatars/notion.png"}
                     />
@@ -256,7 +348,7 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
                 <div className="w-full max-w-md px-2">
                     <HP
                         name={"Enemy"}
-                        hp={battleState?.bot_hp ?? 0}
+                        hp={playerRole === 1 ? (battleState?.hp2 ?? 0) : (battleState?.hp1 ?? 0)}
                         maxHp={80}
                         avatarUrl={"/avatars/orc.jpg"}
                     />
