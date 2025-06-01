@@ -2,6 +2,7 @@
 
 import PvpCanvas from "@/components/game/PvpCanvas";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default function BattlePage() {
     return (
@@ -17,7 +18,9 @@ export default function BattlePage() {
                     Back to Home
                 </Link>
             </div>
-            <PvpCanvas />
+            <Suspense fallback={<div>Loading...</div>}>
+                <PvpCanvas />
+            </Suspense>
         </main>
     );
 }
