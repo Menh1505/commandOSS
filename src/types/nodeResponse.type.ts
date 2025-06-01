@@ -1,11 +1,7 @@
 export interface CreateBattleResponse {
-    jsonrpc: string;
-    id: number;
-    result: {
-        digest: string;
-        objectChanges: ObjectChange[];
-        confirmedLocalExecution: boolean;
-    }
+    digest: string;
+    objectChanges: ObjectChange[];
+    confirmedLocalExecution: boolean;
 }
 
 export type ObjectChange = MutatedObject | CreatedObject | DeletedObject;

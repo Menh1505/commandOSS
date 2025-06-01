@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ConnectButton } from '@mysten/dapp-kit';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 
+
 export default function Home() {
   const currentAccount = useCurrentAccount();
   const isConnected = !!currentAccount;
