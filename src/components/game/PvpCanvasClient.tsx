@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from "react";
 import * as Phaser from "phaser";
 import HP from './HP';
@@ -59,7 +61,7 @@ export default function GameCanvasClient({ battleStateId, playerRole }: GameCanv
         setTimeout(() => {
             fetchBattleState();
         }, 2000);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [battleStateId]);
 
     useEffect(() => {
