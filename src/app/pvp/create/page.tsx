@@ -81,7 +81,7 @@ export default function CreatePvPRoom() {
 
     const handleStartGame = () => {
         if (roomId && roomStatus === 'ready') {
-            router.push(`/pvp/${roomId}`);
+            router.push(`/pvp/${roomId}?role=1`);
         }
     };
 

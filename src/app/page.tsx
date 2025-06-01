@@ -22,7 +22,7 @@ export default function Home() {
       return;
     }
     // Chuyển hướng đến trang phòng với ID đã nhập
-    router.push(`/pvp/${roomId}`);
+    router.push(`/pvp/${roomId}?role=2`);
   };
 
   return (
