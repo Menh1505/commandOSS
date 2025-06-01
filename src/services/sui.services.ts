@@ -77,6 +77,15 @@ export class SuiService {
         );
     }
 
+    getMutatedBattleResponse(response: CreateBattleResponse): CreatedObject | undefined {
+        return response.objectChanges.find(
+            (change): change is CreatedObject =>
+                change.type === 'mutated' &&
+                change.objectType.includes('::scontract::BattleState')
+        );
+    }
+
+
     getCreateBattleResponseId(response: CreateBattleResponse): string | undefined {
         const battleState = this.getCreateBattleResponse(response);
         return battleState?.objectId;
@@ -141,10 +150,9 @@ export class SuiService {
                 options: {
                     showObjectChanges: true,
                 },
-            });
+            }) as unknown as CreateBattleResponse;
 
             reportTransactionEffects(executeResult.digest);
-            console.log("Attack executed successfully:", executeResult);
             return executeResult.digest;
         } catch (error) {
             console.error("Error when calling contract:", error);

@@ -9,18 +9,46 @@ import { useSignTransaction } from "@mysten/dapp-kit";
 interface GameCanvasClientProps {
     battleStateId: string | null;
 }
+
+interface BattleState {
+    player_hp: number;
+    bot_hp: number;
+    result: string;
+    turn: number;
+}
+
 export default function GameCanvasClient({ battleStateId }: GameCanvasClientProps) {
     const [gameDimensions, setGameDimensions] = useState({ width: 0, height: 0 });
     const [game, setGame] = useState<Phaser.Game | null>(null);
     const { mutateAsync: signTransaction } = useSignTransaction();
-    const [turn, setTurn] = useState(0);
+    const [battleState, setBattleState] = useState<BattleState>();
+    const [isActionInProgress, setIsActionInProgress] = useState(false);
 
+    // Hàm lấy trạng thái battle từ blockchain
+    async function fetchBattleState() {
+        if (!battleStateId) return;
+
+        try {
+            const state = await suiService.getBattleState(battleStateId) as unknown as BattleState;
+            console.log("Updated battle state:", state);
+            setBattleState(state);
+            return state;
+        } catch (error) {
+            console.error("Error fetching battle state:", error);
+        }
+    }
+
+    // Lấy trạng thái battle ban đầu khi component được mount
     useEffect(() => {
         if (!battleStateId) {
             console.error("Battle state ID is required to start the game.");
             return;
         }
-        setTurn(0);
+
+        // Lấy trạng thái ban đầu sau một độ trễ ngắn
+        setTimeout(() => {
+            fetchBattleState();
+        }, 2000);
     }, [battleStateId]);
 
     useEffect(() => {
@@ -134,16 +162,40 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
     }, []);
 
     const useSkill = async (skill: Skill) => {
-        console.log("Using skill:", skill);
-        if (game && game.scene.isActive('MainScene') && battleStateId) {
+        if (!battleStateId || isActionInProgress) return;
+
+        try {
+            setIsActionInProgress(true);
+            console.log("Using skill:", skill);
+
+            // Gọi hàm attack
             const resAttack = await suiService.attack(
                 battleStateId,
-                turn,
+                battleState?.turn || 0,
                 signTransaction,
             );
-
             console.log("Attack result:", resAttack);
-            setTurn(prev => prev + 1);
+
+            // Chờ một chút để giao dịch được xác nhận trên blockchain
+            setTimeout(async () => {
+                // Sau khi tấn công, cập nhật lại trạng thái battle
+                const updatedState = await fetchBattleState();
+
+                // Kiểm tra kết quả trận đấu
+                if (updatedState && updatedState.result !== "") {
+                    if (updatedState.result === "player_win") {
+                        alert("You won the battle!");
+                    } else if (updatedState.result === "bot_win") {
+                        alert("You lost the battle!");
+                    }
+                }
+
+                setIsActionInProgress(false);
+            }, 2000); // Đợi 2 giây cho giao dịch được xác nhận
+
+        } catch (error) {
+            console.error("Error using skill:", error);
+            setIsActionInProgress(false);
         }
     };
 
@@ -163,7 +215,15 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
                 }}
             >
                 <div className="w-full max-w-md px-4">
-                    <SkillPanel onClick={useSkill} disabled={false} />
+                    <SkillPanel
+                        onClick={useSkill}
+                        disabled={isActionInProgress} // Disable skills khi đang thực hiện hành động
+                    />
+                    {isActionInProgress && (
+                        <div className="mt-2 text-center text-yellow-400 font-orbitron text-sm">
+                            Processing action...
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -176,7 +236,12 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
                 }}
             >
                 <div className="w-full max-w-md px-2">
-                    <HP name={"Player"} hp={100} maxHp={100} avatarUrl={"/avatars/notion.png"} />
+                    <HP
+                        name={"Player"}
+                        hp={battleState?.player_hp ?? 0}
+                        maxHp={100}
+                        avatarUrl={"/avatars/notion.png"}
+                    />
                 </div>
             </div>
 
@@ -189,7 +254,12 @@ export default function GameCanvasClient({ battleStateId }: GameCanvasClientProp
                 }}
             >
                 <div className="w-full max-w-md px-2">
-                    <HP name={"Enemy"} hp={80} maxHp={100} avatarUrl={"/avatars/orc.jpg"} />
+                    <HP
+                        name={"Enemy"}
+                        hp={battleState?.bot_hp ?? 0}
+                        maxHp={80}
+                        avatarUrl={"/avatars/orc.jpg"}
+                    />
                 </div>
             </div>
         </>

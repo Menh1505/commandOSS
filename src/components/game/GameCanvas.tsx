@@ -29,16 +29,6 @@ export default function GameCanvas() {
         return;
       }
       setBattleStateId(battleId);
-
-      setTimeout(async () => {
-        try {
-          const battleState = await suiService.getBattleState(battleId);
-          console.log("Battle state after 3 seconds:", battleState);
-        } catch (error) {
-          console.error("Error fetching battle state:", error);
-        }
-      }, 3000);
-
     }
     callContract();
   }, [currentAccount, signTransaction]);
