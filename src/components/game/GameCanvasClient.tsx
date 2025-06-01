@@ -3,10 +3,25 @@ import * as Phaser from "phaser";
 import HP from './HP';
 import SkillPanel from './SkillPanel';
 import { Skill } from '@/types/skill.type';
+import suiService from "@/services/sui.services";
+import { useSignTransaction } from "@mysten/dapp-kit";
 
-export default function GameCanvasClient() {
+interface GameCanvasClientProps {
+    battleStateId: string | null;
+}
+export default function GameCanvasClient({ battleStateId }: GameCanvasClientProps) {
     const [gameDimensions, setGameDimensions] = useState({ width: 0, height: 0 });
     const [game, setGame] = useState<Phaser.Game | null>(null);
+    const { mutateAsync: signTransaction } = useSignTransaction();
+    const [turn, setTurn] = useState(0);
+
+    useEffect(() => {
+        if (!battleStateId) {
+            console.error("Battle state ID is required to start the game.");
+            return;
+        }
+        setTurn(0);
+    }, [battleStateId]);
 
     useEffect(() => {
         const container = document.getElementById('game-container');
@@ -118,10 +133,17 @@ export default function GameCanvasClient() {
         };
     }, []);
 
-    const useSkill = (skill: Skill) => {
+    const useSkill = async (skill: Skill) => {
         console.log("Using skill:", skill);
-        if (game && game.scene.isActive('MainScene')) {
-            // Xử lý kỹ năng
+        if (game && game.scene.isActive('MainScene') && battleStateId) {
+            const resAttack = await suiService.attack(
+                battleStateId,
+                turn,
+                signTransaction,
+            );
+
+            console.log("Attack result:", resAttack);
+            setTurn(prev => prev + 1);
         }
     };
 

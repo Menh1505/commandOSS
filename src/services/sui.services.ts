@@ -107,6 +107,49 @@ export class SuiService {
         }
     }
 
+    async attack(
+        battleId: string,
+        turn: number,
+        signTransaction: ReturnType<typeof useSignTransaction>['mutateAsync']
+    ) {
+        if (!battleId) {
+            alert("Battle ID is required");
+            return;
+        }
+        const formattedId = this.formatObjectId(battleId, false);
+        try {
+            const tx = new Transaction();
+            tx.moveCall({
+                package: "0x41a69e2ef9f759dcd2d68135fd32169eddb4bd34a54b7ef194e7ba29a2505cf4",
+                module: "scontract",
+                function: turn === 0 ? "player_attack" : "bot_attack",
+                arguments: [
+                    tx.object(formattedId),
+                    tx.object("0x8")
+                ],
+                typeArguments: []
+            });
+
+            const { bytes, signature, reportTransactionEffects } = await signTransaction({
+                transaction: tx,
+                chain: `sui:${this.network}`,
+            });
+
+            const executeResult = await this.client.executeTransactionBlock({
+                transactionBlock: bytes,
+                signature,
+                options: {
+                    showObjectChanges: true,
+                },
+            });
+
+            reportTransactionEffects(executeResult.digest);
+            console.log("Attack executed successfully:", executeResult);
+            return executeResult.digest;
+        } catch (error) {
+            console.error("Error when calling contract:", error);
+        }
+    }
 }
 
 // Export default instance với testnet

@@ -50,7 +50,7 @@ export default function GameCanvas() {
         suppressHydrationWarning
       />
       {battleStateId ? (
-        <GameCanvasClient />
+        <GameCanvasClient battleStateId={battleStateId}/>
       ) : (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
           <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mb-4"></div>
