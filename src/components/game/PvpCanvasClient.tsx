@@ -17,7 +17,7 @@ interface GameCanvasClientProps {
 interface BattleState {
     hp1: number;
     hp2: number;
-    result: string;
+    result: number;
     turn: number;
 }
 
@@ -212,15 +212,13 @@ export default function GameCanvasClient({ battleStateId, playerRole }: GameCanv
         if (!battleState || !battleState.result) return null;
 
         // Giả sử kết quả là "player1_win" hoặc "player2_win"
-        if (battleState.result === "player1_win") {
+        if (battleState.result === 1) {
             return playerRole === 1 ? "You Win!" : "You Lose!";
-        } else if (battleState.result === "player2_win") {
+        } else if (battleState.result === 2) {
             return playerRole === 2 ? "You Win!" : "You Lose!";
-        } else if (battleState.result === "draw") {
+        } else {
             return "Draw!";
         }
-
-        return null;
     };
 
     // Xác định màu sắc dựa vào kết quả

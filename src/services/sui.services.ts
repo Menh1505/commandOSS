@@ -257,7 +257,7 @@ export class SuiService {
             tx.moveCall({
                 package: "0x08ac2878831a715e5d3c832b44077225862d66c4504d1281df50273620fd023c",
                 module: "pvp",
-                function: "attach_pvp",
+                function: "attack_pvp",
                 arguments: [
                     tx.object(formattedId),
                     tx.object("0x8")
