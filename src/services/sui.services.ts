@@ -3,6 +3,7 @@ import { useSignTransaction } from '@mysten/dapp-kit';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import type { WalletAccount } from '@mysten/wallet-standard';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
 
 /**
  * Class cung cấp các phương thức tương tác với Sui blockchain
@@ -10,15 +11,24 @@ import type { WalletAccount } from '@mysten/wallet-standard';
 export class SuiService {
     private client: SuiClient;
     private network: 'mainnet' | 'testnet' | 'devnet' | 'localnet';
+    private graphqlClient: SuiGraphQLClient;
 
     constructor(network: 'mainnet' | 'testnet' | 'devnet' | 'localnet' = 'testnet') {
         this.network = network;
-        this.client = new SuiClient({ url: getFullnodeUrl(network) });
+        this.client = new SuiClient({ url: getFullnodeUrl("testnet") });
+        this.graphqlClient = new SuiGraphQLClient({
+            url: `https://sui-${network}.mystenlabs.com/graphql`,
+        });
     }
 
-    /**
-     * Gọi contract tạo battle, truyền các dependency cần thiết từ component sử dụng hook vào đây.
-     */
+    formatObjectId(id: string, addPrefix: boolean = false): string {
+        if (addPrefix) {
+            return id.startsWith('0x') ? id : `0x${id}`;
+        } else {
+            return id.startsWith('0x') ? id.substring(2) : id;
+        }
+    }
+
     async createBattle(
         signTransaction: ReturnType<typeof useSignTransaction>['mutateAsync'],
         currentAccount: WalletAccount,
@@ -41,7 +51,7 @@ export class SuiService {
 
             const { bytes, signature, reportTransactionEffects } = await signTransaction({
                 transaction: tx,
-                chain: 'sui:testnet',
+                chain: `sui:${this.network}`,
             });
 
             const executeResult = await this.client.executeTransactionBlock({
@@ -53,13 +63,13 @@ export class SuiService {
             }) as unknown as CreateBattleResponse;
 
             reportTransactionEffects(executeResult.digest);
-            return this.getBattleStateId(executeResult);
+            return this.getCreateBattleResponseId(executeResult);
         } catch (error) {
             console.error("Error when calling contract:", error);
         }
     }
 
-    getBattleState(response: CreateBattleResponse): CreatedObject | undefined {
+    getCreateBattleResponse(response: CreateBattleResponse): CreatedObject | undefined {
         return response.objectChanges.find(
             (change): change is CreatedObject =>
                 change.type === 'created' &&
@@ -67,9 +77,34 @@ export class SuiService {
         );
     }
 
-    getBattleStateId(response: CreateBattleResponse): string | undefined {
-        const battleState = this.getBattleState(response);
+    getCreateBattleResponseId(response: CreateBattleResponse): string | undefined {
+        const battleState = this.getCreateBattleResponse(response);
         return battleState?.objectId;
+    }
+
+    async getBattleState(battleId: string) {
+        const formattedId = this.formatObjectId(battleId, false);
+        console.log("Fetching battle state for ID:", formattedId);
+        try {
+            const result = await this.client.getObject({
+                id: formattedId,
+                options: {
+                    showContent: true,
+                    showType: true,
+                    showOwner: true,
+                },
+            });
+            console.log("Battle state result:", result);
+            if (!result.data || result.data.content?.dataType !== "moveObject") {
+                throw new Error("Invalid object data");
+            }
+
+            const fields = result.data.content.fields;
+            return fields;
+        } catch (err) {
+            console.error("❌ Error when fetching object:", err);
+            return null;
+        }
     }
 
 }
