@@ -103,7 +103,7 @@ export class SuiService {
                     showOwner: true,
                 },
             });
-            console.log("Battle state result:", result);
+
             if (!result.data || result.data.content?.dataType !== "moveObject") {
                 throw new Error("Invalid object data");
             }
@@ -189,9 +189,8 @@ export class SuiService {
                     showObjectChanges: true,
                 },
             }) as unknown as CreateBattleResponse;
-
             reportTransactionEffects(executeResult.digest);
-            return this.getCreateBattleResponseId(executeResult);
+            return executeResult.objectChanges[1].objectId;
         } catch (error) {
             console.error("Error when calling contract:", error);
         }
@@ -282,6 +281,31 @@ export class SuiService {
             return executeResult.digest;
         } catch (error) {
             console.error("Error when calling contract:", error);
+        }
+    }
+
+    async getPvpRoomState(battleId: string) {
+        const formattedId = this.formatObjectId(battleId, false);
+        console.log("Fetching battle state for ID:", formattedId);
+        try {
+            const result = await this.client.getObject({
+                id: formattedId,
+                options: {
+                    showContent: true,
+                    showType: true,
+                    showOwner: true,
+                },
+            });
+            if (!result.data || result.data.content?.dataType !== "moveObject") {
+                throw new Error("Invalid object data");
+            }
+
+            // console.log("Battle state fields:", result.data.content.fields);
+            const fields = result.data.content.fields;
+            return fields;
+        } catch (err) {
+            console.error("❌ Error when fetching object:", err);
+            return null;
         }
     }
 }
