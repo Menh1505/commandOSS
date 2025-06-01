@@ -1,31 +1,9 @@
 module scontract::scontract{
-    use sui::random::{Self, Random, new_generator};
-    use sui::object::{Self, UID};
-    use sui::tx_context::{Self, TxContext};
-    use sui::transfer;
-    use sui::hash;
-    use std::vector;
+    use sui::random::{Random, new_generator};
 
     const E_INVALID_INPUT: u64 = 0;
     const E_INVALID_TURN: u64 = 1;
     const E_MUST_ALIVE: u64 = 2;
-
-    public struct PlayerProfile has key, store {
-        id: UID,
-        owner: address,
-        level: u64,
-        hp: u64,
-        atk: u64,
-        def: u64,
-        crit_rate: u64, // thousandth, ex 100 = 10%
-    }
-
-    public struct BotEnemy has store {
-        hp: u64,
-        atk: u64,
-        def: u64,
-        crit_rate: u64,
-    }
 
     /// Trạng thái trận đấu
     public struct BattleState has key, store {
@@ -63,6 +41,7 @@ module scontract::scontract{
     }
 
     /// Người chơi tấn công
+    #[allow(lint(public_random))]
     public entry fun player_attack(state: &mut BattleState, r: &Random, ctx: &mut TxContext) {
         assert!(state.turn == 0, E_INVALID_TURN); // chỉ khi tới lượt player
         assert!(state.player_hp > 0 && state.bot_hp > 0, E_MUST_ALIVE); // cả 2 còn sống
@@ -74,10 +53,7 @@ module scontract::scontract{
             0
         } else (state.bot_hp - final_dmg);
         state.turn = 1;
-    }
-    
-    /// Bot phản đòn
-    public entry fun bot_attack(state: &mut BattleState, r: &Random, ctx: &mut TxContext) {
+
         assert!(state.turn == 1, E_INVALID_TURN); // chỉ khi tới lượt bot
         assert!(state.player_hp > 0 && state.bot_hp > 0, E_MUST_ALIVE); // cả 2 còn sống
 
