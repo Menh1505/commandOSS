@@ -11,7 +11,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-      {/* Nút Connect Wallet ở góc trên bên phải - chỉ hiển thị khi đã đăng nhập */}
       {isConnected && (
         <div className="absolute top-4 right-4">
           <ConnectButton />
